@@ -1,55 +1,82 @@
+import { Pokemon } from "@/pokemons";
 import { Metadata } from "next";
-import { Pokemon } from "../../../../pokemons/interfaces/pokemon";
-import Image from "next/image";
+import Image from 'next/image';
 import { notFound } from "next/navigation";
+
 
 interface Props {
   params: { id: string };
 }
-
+//! En build time
 export async function generateStaticParams() {
 
-  const static151Pokemons = Array.from({ length: 151 }).map( (v, i) => ` ${i + 1}`)
+  const static151Pokemons = Array.from({ length: 151 }).map( (v, i) => `${i + 1}` );
 
-  return static151Pokemons.map((id) => ({
+  return static151Pokemons.map( id => ({
     id: id
-  }))
+  }));
 
+  // return [
+  //   { id: '1' },
+  //   { id: '2' },
+  //   { id: '3' },
+  //   { id: '4' },
+  //   { id: '5' },
+  //   { id: '6' },
+  // ]
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+
+
+
+export async function generateMetadata({ params }:Props): Promise<Metadata> {
+
   try {
     const { id, name } = await getPokemon(params.id);
-
+  
     return {
-      title: `#${id} - ${name}`,
-      description: "dsadsad",
-    };
+      title: `#${ id } - ${ name }`,
+      description: `Página del pokémon ${ name }`
+    }
+    
   } catch (error) {
     return {
-      title: "pagina del pokemon",
-      description: "dsadsad",
-    };
+      title: 'Página del pokémon',
+      description: 'Culpa cupidatat ipsum magna reprehenderit ex tempor sint ad minim reprehenderit consequat sit.'
+    }
   }
 }
 
-const getPokemon = async (id: string): Promise<Pokemon> => {
+
+const getPokemon = async(id: string): Promise<Pokemon> => {
+
+
   try {
-    const pokemon = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`, {
-      //cache: "force-cache",
-    }).then((resp) => resp.json());
+    const pokemon = await fetch(`https://pokeapi.co/api/v2/pokemon/${ id }`,{
+      // cache: 'force-cache',// TODO: cambiar esto en un futuro
+      next: {
+        revalidate: 60 * 60 * 30 * 6
+      }
+    }).then( resp => resp.json() );
   
-    console.log("se cargo", pokemon.name);
+    console.log('Se cargó: ', pokemon.name);
   
     return pokemon;
     
   } catch (error) {
-    notFound()
+    notFound();
   }
-};
+
+}
+
+
+
 
 export default async function PokemonPage({ params }: Props) {
+
   const pokemon = await getPokemon(params.id);
+
+
   return (
     <div className="flex mt-5 flex-col items-center text-slate-800">
       <div className="relative flex flex-col items-center rounded-[20px] w-[700px] mx-auto bg-white bg-clip-border  shadow-lg  p-3">
@@ -59,44 +86,49 @@ export default async function PokemonPage({ params }: Props) {
           </h1>
           <div className="flex flex-col justify-center items-center">
             <Image
-              src={pokemon.sprites.other?.dream_world.front_default ?? ""}
+              src={pokemon.sprites.other?.dream_world.front_default ?? ''}
               width={150}
               height={150}
               alt={`Imagen del pokemon ${pokemon.name}`}
               className="mb-5"
             />
 
+
             <div className="flex flex-wrap">
-              {pokemon.moves.map((move) => (
-                <p key={move.move.name} className="mr-2 capitalize">
-                  {move.move.name}
-                </p>
-              ))}
+              {
+                pokemon.moves.map(move => (
+                  <p key={move.move.name} className="mr-2 capitalize">{move.move.name}</p>
+                ))
+              }
             </div>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4 px-2 w-full">
+
           <div className="flex flex-col items-start justify-center rounded-2xl bg-white bg-clip-border px-3 py-4  drop-shadow-lg ">
             <p className="text-sm text-gray-600">Types</p>
             <div className="text-base font-medium text-navy-700 flex">
-              {pokemon.types.map((type) => (
-                <p key={type.slot} className="mr-2 capitalize">
-                  {type.type.name}
-                </p>
-              ))}
+              {
+                pokemon.types.map(type => (
+                  <p key={type.slot} className="mr-2 capitalize">{type.type.name}</p>
+                ))
+              }
             </div>
           </div>
 
           <div className="flex flex-col items-start justify-center rounded-2xl bg-white bg-clip-border px-3 py-4  drop-shadow-lg ">
             <p className="text-sm text-gray-600">Peso</p>
             <span className="text-base font-medium text-navy-700 flex">
-              {pokemon.weight}
+              {
+                pokemon.weight
+              }
             </span>
           </div>
 
           <div className="flex flex-col justify-center rounded-2xl bg-white bg-clip-border px-3 py-4  drop-shadow-lg">
             <p className="text-sm text-gray-600">Regular Sprites</p>
             <div className="flex justify-center">
+
               <Image
                 src={pokemon.sprites.front_default}
                 width={100}
@@ -110,12 +142,14 @@ export default async function PokemonPage({ params }: Props) {
                 height={100}
                 alt={`sprite ${pokemon.name}`}
               />
+
             </div>
           </div>
 
           <div className="flex flex-col justify-center rounded-2xl bg-white bg-clip-border px-3 py-4  drop-shadow-lg">
             <p className="text-sm text-gray-600">Shiny Sprites</p>
             <div className="flex justify-center">
+
               <Image
                 src={pokemon.sprites.front_shiny}
                 width={100}
@@ -129,8 +163,12 @@ export default async function PokemonPage({ params }: Props) {
                 height={100}
                 alt={`sprite ${pokemon.name}`}
               />
+
             </div>
           </div>
+
+
+
         </div>
       </div>
     </div>
